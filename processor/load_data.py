@@ -16,7 +16,6 @@ class Loader():
                     INNER JOIN sales AS s ON h.houseid = s.houseid AND h.type != 'O'
                     WHERE s.ppd_cat = 'A';""")
             data = self._cur.fetchall()
-            print("Loaded Data")
             self._format_df(data)
         else:
             if self.area_type not in self._areas:
@@ -70,9 +69,11 @@ class Loader():
         self._cur.execute("SELECT date FROM sales ORDER BY date DESC LIMIT 1;")
         latest_date = self._cur.fetchone()
         if latest_date is not None:
-            return latest_date[0]
-        else:
-            return datetime.now() - timedelta(days=90)
+            latest_date = datetime.combine(latest_date[0], datetime.min.time())
+            if latest_date > (datetime.now() - timedelta(days=60)):
+                return datetime.now() - timedelta(days=60)
+            else:
+                return latest_date[0]
 
 if __name__ == "__main__":
     import psycopg2
