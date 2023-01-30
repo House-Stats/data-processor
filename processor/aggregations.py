@@ -103,7 +103,7 @@ class Aggregator():
         data = self._data.partition_by("type", as_dict=True)
         monthly_perc = {}
         for house_type in data:
-            monthly_perc = self._calc_ind_percentage(data[house_type]).to_dict(as_series=False)
+            monthly_perc[house_type] = self._calc_ind_percentage(data[house_type]).to_dict(as_series=False)
         monthly_perc["all"] = self._calc_ind_percentage(self._data).to_dict(as_series=False)
         return monthly_perc
 
