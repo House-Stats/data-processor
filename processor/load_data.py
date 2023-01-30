@@ -73,7 +73,7 @@ class Loader():
             latest_date = datetime.combine(latest_date[0], datetime.min.time())
             if latest_date > (datetime.now() - timedelta(days=60)):
                 start = datetime.now().replace(day=1)
-                return start - relativedelta(months=1)
+                return start - relativedelta(months=2)
             else:
                 return latest_date[0]
 
