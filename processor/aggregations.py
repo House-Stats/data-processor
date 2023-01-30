@@ -99,6 +99,38 @@ class Aggregator():
         }
         return data
 
+    def _calc_all_perc(self) -> Dict:
+        data = self._data.partition_by("type", as_dict=True)
+        monthly_perc = {}
+        for house_type in data:
+            monthly_perc = self._calc_ind_percentage(data[house_type]).to_dict(as_series=False)
+        monthly_perc["all"] = self._calc_ind_percentage(self._data)
+        return monthly_perc
+
+
+    def _calc_ind_percentage(self, df: pl.DataFrame) -> pl.DataFrame:
+        df = df.sort("date") \
+                .groupby_dynamic("date", every="1mo") \
+                .agg(pl.col("price").log().mean().exp().alias("avg_price"))
+        df = df.with_columns([
+            pl.col("date").dt.month().alias("month"),
+            pl.col("date").dt.year().alias("year")
+        ])
+        df = df.groupby("month").apply(self._calc_percentages_months)
+        df = df.drop(["year", "month", "prev_year", "avg_price"])
+        df = df.sort("date")
+        return df
+
+    def _calc_percentages_months(self, data: pl.DataFrame):
+        df = data.sort("date").with_columns(
+            pl.col("avg_price").shift().alias("prev_year")
+        )
+        df = df.filter(pl.col("prev_year").is_not_null())
+        df = df.with_columns(
+            (((pl.col("avg_price")-pl.col("prev_year"))/pl.col("avg_price")*100)/12).alias("perc_change")
+        )
+        return df
+
     def _quick_stats(self, data) -> Dict[str, float]:
         try:
             current_month = data["average_price"]["dates"][-2]
@@ -156,20 +188,23 @@ class Aggregator():
             "type_proportions": self._calc_type_proportions(),
             "monthly_sales_volume": self._calc_monthly_volume(),
             "monthly_price_volume": self._calc_monthly_price_volume(),
-            # "percentage_change": self._perc_change()
+            "percentage_change": self._calc_all_perc()
         }
         data["quick_stats"] = self._quick_stats(data)
         return data
+
         
 
 if __name__ == "__main__":
     import time
-
     import psycopg2
+
     start = time.time()
     conn = psycopg2.connect("postgresql://house_data:lriFahwbJwfv2388neiluOMI@192.168.4.30:5432/house_data")
-    data_loader = Loader("SA", "area", conn.cursor())
+    data_loader = Loader("CH", "area", conn.cursor())
     print(f"loaded_data - {time.time() - start}")
     agg = Aggregator(data_loader)
     data = agg.get_all_data()
-    print(data["average_price"])
+    import pprint
+    pp = pprint.PrettyPrinter(indent=4)
+    pp.pprint(data["percentage_change"])
