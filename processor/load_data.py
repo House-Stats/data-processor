@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 
 import polars as pl
 from typing import List
+from dateutil.relativedelta import relativedelta
 
 class Loader():
     def __init__(self, area: str, area_type: str, db_cur) -> None:
@@ -71,7 +72,8 @@ class Loader():
         if latest_date is not None:
             latest_date = datetime.combine(latest_date[0], datetime.min.time())
             if latest_date > (datetime.now() - timedelta(days=60)):
-                return datetime.now() - timedelta(days=60)
+                start = datetime.now().replace(day=1)
+                return start - relativedelta(months=1)
             else:
                 return latest_date[0]
 
@@ -79,4 +81,5 @@ if __name__ == "__main__":
     import psycopg2
     conn = psycopg2.connect("postgresql://house_data:lriFahwbJwfv2388neiluOMI@192.168.4.30:5432/house_data")
     loader = Loader("CH", "area", conn.cursor())
+    print(loader.latest_date)
     print(loader.data.head())
