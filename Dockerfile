@@ -9,4 +9,4 @@ RUN python3 -m pip install -r requirements.txt
 
 COPY ./worker .
 
-CMD ["--app=worker", "worker", "--loglevel=info", "--concurrency=4", "--without-heartbeat", "--without-gossip", "--without-mingle", "-Ofair", "--task-events"]
+CMD ["celery", "--app=worker", "worker", "--loglevel=info", "--concurrency=4", "--without-heartbeat", "--without-gossip", "--without-mingle", "-Ofair", "--task-events"]
