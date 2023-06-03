@@ -41,7 +41,7 @@ class Loader():
                 """
         if self.area == "" and self.area_type == "":
             query = query.replace("AND p. = ''", "")
-        self._data = pl.read_sql(query, self._sql_uri)
+        self._data = pl.read_database(query, self._sql_uri)
 
 
     def format_df(self):
