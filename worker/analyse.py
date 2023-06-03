@@ -61,6 +61,7 @@ class Analyse():
         try:
             self._loader = Loader(area, area_type, self._cur, self._sql_uri)
         except ValueError as e:
+            print(e)
             return e
         self._data = self._loader.get_data()
         del self._loader
@@ -291,6 +292,7 @@ class Analyse():
     def _quick_stats(self, data) -> Dict[str, float]:
 
         current_month = data["average_price"]["dates"][-1]
+        print(current_month)
         current_average = data["average_price"]["prices"][-1][-1]
         prev_average = data["average_price"]["prices"][-1][-2]
         try:
@@ -358,7 +360,7 @@ class Analyse():
     def pad_df(self, df: pl.DataFrame, period: str) -> pl.DataFrame | None:
         latest_date = self.latest_date
         if latest_date is not None:
-            dates = pl.date_range(datetime(1995,1,1), latest_date, period)
+            dates = pl.date_range(datetime(1995,1,1), latest_date, period, eager=True)
             dates_df = pl.DataFrame(dates, schema=["date"])
             try:
                 df = df.join(dates_df, on="date", how="outer")
@@ -383,5 +385,5 @@ class Analyse():
 
 if __name__ == "__main__":
     task = Analyse()
-    # print(task.latest_date)
-    task.run("CH99","OUTCODE")
+    print(task.latest_date)
+    task.run("CH47","OUTCODE")
