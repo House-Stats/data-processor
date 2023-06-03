@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 from typing import List, Tuple
+from polars import exceptions as pl_ex
 
 import polars as pl
 from dateutil.relativedelta import relativedelta
@@ -42,6 +43,8 @@ class Loader():
         if self.area == "" and self.area_type == "":
             query = query.replace("AND p. = ''", "")
         self._data = pl.read_database(query, self._sql_uri)
+        if len(self._data) == 0:
+            raise RuntimeError("No Sales for this area")
 
 
     def format_df(self):

@@ -32,9 +32,21 @@ class Analyse():
         area = area.upper()
         area_type = area_type.upper()
         self.timer = Timer()
+        try:
+            data = self.load_data(area, area_type)
+        except RuntimeError:
+            return_data = {
+                "_id": area + area_type,
+                "area": area,
+                "area_type": area_type,
+                "last_updated": datetime.now(),
+                "timings": {},
+                "stats": {}
+            }
+            self._cache_results(return_data)
 
         if (not self._check_cache(area + area_type) 
-                and not self.load_data(area, area_type)):
+                and not data):
     
             self.aggregate_data()
 
@@ -386,4 +398,4 @@ class Analyse():
 if __name__ == "__main__":
     task = Analyse()
     print(task.latest_date)
-    task.run("CH47","OUTCODE")
+    task.run("EX02","OUTCODE")
